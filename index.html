@@ -101,14 +101,7 @@
         Telegram.WebApp.ready();
 
         function getStatistics() {
-            fetch('/statistics')  // Assuming your Lambda function is triggered by a URL endpoint
-                .then(response => response.json())
-                .then(data => {
-                    displayStatistics(data.records);
-                })
-                .catch(error => {
-                    console.error('Error fetching statistics:', error);
-                });
+            Telegram.WebApp.sendData('/statistics');  // Send command to Telegram bot
         }
 
         function displayStatistics(records) {
@@ -155,6 +148,14 @@
             // Re-attach sorted rows
             rows.forEach(row => table.appendChild(row));
         }
+
+        // Function to receive data from the bot and display it
+        Telegram.WebApp.onEvent('data', (data) => {
+            const parsedData = JSON.parse(data);
+            if (parsedData.records) {
+                displayStatistics(parsedData.records);
+            }
+        });
     </script>
 </body>
 </html>
