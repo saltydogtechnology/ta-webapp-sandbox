@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics Web App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.10/styles/default.min.css">
+    <style>
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+            color: #333333;
+        }
+        .header {
+            background-color: #333333;
+            color: #ffffff;
+            padding: 1em;
+            text-align: center;
+        }
+        .content {
+            max-width: 800px;
+            margin: 2em auto;
+            padding: 1em;
+            background-color: #f4f4f4;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 1em 0;
+            font-size: 16px;
+            color: #ffffff;
+            background-color: #333333;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+        }
+        button:hover {
+            background-color: #555555;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #dddddd;
+            cursor: pointer;
+        }
+        th {
+            background-color: #333333;
+            color: #ffffff;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Statistics</h1>
+    </div>
+    <div class="content">
+        <button onclick="getStatistics()">Get Statistics</button>
+        <div class="statistics-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">ID</th>
+                        <th onclick="sortTable(1)">Asset Quantity</th>
+                        <th onclick="sortTable(2)">Entry Price</th>
+                        <th onclick="sortTable(3)">Leverage</th>
+                        <th onclick="sortTable(4)">Max Gain Point</th>
+                        <th onclick="sortTable(5)">Max Loss Point</th>
+                        <th onclick="sortTable(6)">PnL Max Gain</th>
+                        <th onclick="sortTable(7)">PnL Max Loss</th>
+                        <th onclick="sortTable(8)">Position Size (USDT)</th>
+                        <th onclick="sortTable(9)">Position Size (Leverage)</th>
+                        <th onclick="sortTable(10)">Position Type</th>
+                        <th onclick="sortTable(11)">Risk Reward Ratio</th>
+                        <th onclick="sortTable(12)">Symbol Name</th>
+                    </tr>
+                </thead>
+                <tbody id="statistics-body">
+                    <!-- Data will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        Telegram.WebApp.ready();
+
+        function getStatistics() {
+            fetch('/statistics')  // Assuming your Lambda function is triggered by a URL endpoint
+                .then(response => response.json())
+                .then(data => {
+                    displayStatistics(data.records);
+                })
+                .catch(error => {
+                    console.error('Error fetching statistics:', error);
+                });
+        }
+
+        function displayStatistics(records) {
+            var statisticsBody = document.getElementById('statistics-body');
+            statisticsBody.innerHTML = '';  // Clear existing data
+
+            records.forEach(record => {
+                var row = document.createElement('tr');
+
+                Object.keys(record).forEach(key => {
+                    var cell = document.createElement('td');
+                    cell.textContent = typeof record[key] === 'object' ? JSON.stringify(record[key]) : record[key];
+                    row.appendChild(cell);
+                });
+
+                statisticsBody.appendChild(row);
+            });
+
+            var statisticsContainer = document.querySelector('.statistics-container');
+            statisticsContainer.style.display = 'block';
+        }
+
+        function sortTable(columnIndex) {
+            var table = document.querySelector("table tbody");
+            var rows = Array.from(table.rows);
+            var isNumeric = !isNaN(rows[0].cells[columnIndex].innerText);
+            var ascending = table.getAttribute('data-sort-order') === 'asc' || false;
+
+            rows.sort((a, b) => {
+                var aText = a.cells[columnIndex].innerText;
+                var bText = b.cells[columnIndex].innerText;
+
+                return isNumeric 
+                    ? ascending 
+                        ? parseFloat(aText) - parseFloat(bText)
+                        : parseFloat(bText) - parseFloat(aText)
+                    : ascending 
+                        ? aText.localeCompare(bText)
+                        : bText.localeCompare(aText);
+            });
+
+            table.setAttribute('data-sort-order', ascending ? 'desc' : 'asc');
+
+            // Re-attach sorted rows
+            rows.forEach(row => table.appendChild(row));
+        }
+    </script>
+</body>
+</html>
