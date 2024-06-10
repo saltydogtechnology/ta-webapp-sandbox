@@ -48,17 +48,21 @@
         <h1>Statistics</h1>
         <button onclick="getStatistics()">Get Statistics</button>
         <button onclick="generateStatistics()">Generate Statistics</button>
+        <button onclick="resetStatistics()">Reset Statistics</button>
     </div>
 
     <script>
         Telegram.WebApp.ready();
 
         function getStatistics() {
-            Telegram.WebApp.sendData('/statistics');  // Send command to Telegram bot
+            Telegram.WebApp.sendData('/statistics');
         }
 
         function generateStatistics() {
-            Telegram.WebApp.sendData('/batch_analysis');  // Send command to generate statistics
+            Telegram.WebApp.sendData('/batch_analysis');
+        }
+        function resetStatistics() {
+            Telegram.WebApp.sendData('/reset_statistics');
         }
 
         // Function to receive data from the bot
